@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lembretes</title>
+    <link rel="stylesheet" href="lembrete.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <div class="logo-icon">
+                        <img src="IMG/logo.png" alt="pollen-logo">
+                    </div>
+
+                </div>
+                <button class="toggle-btn" id="toggleBtn">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" placeholder="Search for...">
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="home.html" class="nav-item active">
+                    <i class="fas fa-home nav-icon"></i>
+                    <span class="nav-text">Home</span>
+                </a>
+                <a href="lembrete.html" class="nav-item">
+                    <i class="fas fa-sticky-note nav-icon"></i>
+                    <span class="nav-text">Lembretes</span>
+                </a>
+                <a href="tarefas.html" class="nav-item">
+                    <i class="fas fa-tasks nav-icon"></i>
+                    <span class="nav-text">Tarefas</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-users nav-icon"></i>
+                    <span class="nav-text">Colmeia</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-calendar nav-icon"></i>
+                    <span class="nav-text">Agendar</span>
+                </a>
+                <a href="#" class="nav-item dropdown-item">
+                    <div class="nav-icon-container">
+                        <svg class="nav-icon pollen-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M50 10 L65 20 L65 40 L50 50 L35 40 L35 20 Z" fill="currentColor" />
+                            <path d="M50 50 L65 60 L65 80 L50 90 L35 80 L35 60 Z" fill="currentColor" />
+                            <path d="M15 50 L30 60 L30 80 L15 90 L0 80 L0 60 Z" fill="currentColor" />
+                            <path d="M85 50 L100 60 L100 80 L85 90 L70 80 L70 60 Z" fill="currentColor" />
+                        </svg>
+                    </div>
+                    <span class="nav-text">Colmeia</span>
+                    <i class="fas fa-chevron-down dropdown-arrow"></i>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <div>
+                    <h1>Últimos lembretes</h1>
+                    <p>Todos os lembretes adicionados pelo usuário.</p>
+                </div>
+                <div class="header-actions">
+                    <button id="addReminderBtn" class="btn-add"><i class="fas fa-plus"></i> Adicionar</button>
+                </div>
+            </div>
+
+            <section id="remindersSection" class="reminders-section">
+                <div id="remindersGrid" class="reminders-grid">
+                    <!-- Reminders serão renderizados aqui via JavaScript -->
+                </div>
+            </section>
+
+            <!-- Modal/Form para adicionar lembrete -->
+            <div id="reminderModal" class="modal" aria-hidden="true">
+                <div class="modal-content">
+                    <header class="modal-header">
+                        <h2>Adicionar lembrete</h2>
+                        <button id="closeModal" class="modal-close"><i class="fas fa-times"></i></button>
+                    </header>
+                    <form id="reminderForm" class="reminder-form">
+                        <label>Título
+                            <input type="text" id="r-titulo" placeholder="Ex: Reunião" required>
+                        </label>
+                        <label>Corpo
+                            <input type="text" id="r-corpo" placeholder="Descrição do lembrete">
+                        </label>
+                        <!-- O ID do criador é obtido automaticamente do usuário logado -->
+                        <label>Data início
+                            <input type="date" id="r-dataInicio" required>
+                        </label>
+                        <label>Data término
+                            <input type="date" id="r-dataTermino">
+                        </label>
+                        <div class="modal-actions">
+                            <button type="submit" class="btn-save">Salvar</button>
+                            <button type="button" id="cancelBtn" class="btn-cancel">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+        </main>
+
+        
+    </div>
+    <script src="server.lembretes.js"></script>
+    <script src="slidebar.js"></script>
+    <script>
+        // Uso da API real (GET/POST/DELETE) definida em server.lembretes.js
+        const API_BASE = window.LembretesAPI && window.LembretesAPI.baseUrl ? window.LembretesAPI.baseUrl : 'https://daccf75f6eef.ngrok-free.app/lembretes';
+
+        function formatDateKey(dateStr){
+            if(!dateStr) return '';
+            const d = new Date(dateStr + 'T00:00:00');
+            return d.toISOString().slice(0,10);
+        }
+        function formatDateLabel(dateStr){
+            if(!dateStr) return '';
+            const d = new Date(dateStr + 'T00:00:00');
+            return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+        }
+
+        // wrappers que usam o módulo `server.lembretes.js` (window.LembretesAPI)
+        async function fetchReminders(){
+            try{ return await window.LembretesAPI.getAll(); }catch(err){ console.error('Erro ao buscar lembretes:', err); return []; }
+        }
+
+        async function createReminderOnServer(rem){
+            return await window.LembretesAPI.create(rem);
+        }
+
+        async function deleteReminderOnServer(id){
+            return await window.LembretesAPI.remove(id);
+        }
+
+        async function renderReminders(){
+            const raw = await fetchReminders();
+            let list = raw;
+            // Normalizar resposta: alguns backends retornam { data: [...] } ou { result: [...] }
+            if(!Array.isArray(list)){
+                if(list && Array.isArray(list.data)) list = list.data;
+                else if(list && Array.isArray(list.result)) list = list.result;
+                else {
+                    console.warn('fetchReminders retornou formato inesperado:', raw);
+                    list = [];
+                }
+            }
+
+            const grid = document.getElementById('remindersGrid');
+            grid.innerHTML = '';
+            if(!list || list.length === 0){ grid.innerHTML = '<p style="color:#aaa;">Nenhum lembrete. Clique em "Adicionar" para criar um.</p>'; return; }
+
+            // Agrupa por dataInicio
+            const groups = {};
+            list.slice().sort((a,b)=> (a.dataInicio||'').localeCompare(b.dataInicio||'') || (a.titulo||'').localeCompare(b.titulo||'')).forEach(r=>{
+                const key = formatDateKey(r.dataInicio || r.dataTermino || '');
+                if(!groups[key]) groups[key] = [];
+                groups[key].push(r);
+            });
+
+            Object.keys(groups).forEach(key => {
+                const card = document.createElement('div');
+                card.className = 'reminder-card';
+                const dateLabel = key ? formatDateLabel(key) : 'Sem data';
+                const title = document.createElement('div');
+                title.className = 'date-title';
+                title.textContent = dateLabel;
+                card.appendChild(title);
+
+                groups[key].forEach(item => {
+                    const it = document.createElement('div');
+                    it.className = 'reminder-item';
+
+                    const time = document.createElement('div');
+                    time.className = 'time';
+                    time.textContent = (item.dataInicio || '') + (item.dataTermino ? ' → '+item.dataTermino : '');
+
+                    const info = document.createElement('div');
+                    const t = document.createElement('div');
+                    t.className = 'title';
+                    t.textContent = item.titulo || '';
+                    const d = document.createElement('div');
+                    d.className = 'desc';
+                    d.textContent = item.corpo || '';
+
+                    info.appendChild(t);
+                    info.appendChild(d);
+
+                    const actions = document.createElement('div');
+                    actions.style.marginLeft = 'auto';
+                    actions.style.display = 'flex';
+                    actions.style.alignItems = 'center';
+
+                    const delBtn = document.createElement('button');
+                    delBtn.innerHTML = '<i class="fas fa-trash"></i>';
+                    delBtn.title = 'Remover';
+                    delBtn.style.background = 'transparent';
+                    delBtn.style.border = 'none';
+                    delBtn.style.color = '#ff8080';
+                    delBtn.style.cursor = 'pointer';
+                    delBtn.onclick = async ()=>{
+                        const id = item._id || item.id;
+                        if(!id){ alert('Não foi possível remover: id ausente'); return; }
+                        const ok = await deleteReminderOnServer(id);
+                        if(ok) await renderReminders(); else alert('Erro ao remover lembrete.');
+                    };
+
+                    actions.appendChild(delBtn);
+
+                    it.appendChild(time);
+                    it.appendChild(info);
+                    it.appendChild(actions);
+                    card.appendChild(it);
+                });
+
+                grid.appendChild(card);
+            });
+        }
+
+        // Adiciona um único lembrete ao DOM (sem re-fazer GET completo)
+        function addSingleReminderToDOM(item){
+            if(!item) return;
+            const grid = document.getElementById('remindersGrid');
+            const key = formatDateKey(item.dataInicio || item.dataTermino || '');
+            const dateLabel = key ? formatDateLabel(key) : 'Sem data';
+
+            // procurar card existente para a data
+            let card = Array.from(grid.children).find(c => c.querySelector('.date-title')?.textContent === dateLabel);
+            if(!card){
+                card = document.createElement('div');
+                card.className = 'reminder-card';
+                const title = document.createElement('div');
+                title.className = 'date-title';
+                title.textContent = dateLabel;
+                card.appendChild(title);
+                grid.appendChild(card);
+            }
+
+            const it = document.createElement('div');
+            it.className = 'reminder-item';
+
+            const time = document.createElement('div');
+            time.className = 'time';
+            time.textContent = (item.dataInicio || '') + (item.dataTermino ? ' → '+item.dataTermino : '');
+
+            const info = document.createElement('div');
+            const t = document.createElement('div'); t.className = 'title'; t.textContent = item.titulo || '';
+            const d = document.createElement('div'); d.className = 'desc'; d.textContent = item.corpo || '';
+            info.appendChild(t); info.appendChild(d);
+
+            const actions = document.createElement('div');
+            actions.style.marginLeft = 'auto'; actions.style.display = 'flex'; actions.style.alignItems = 'center';
+
+            const delBtn = document.createElement('button');
+            delBtn.innerHTML = '<i class="fas fa-trash"></i>';
+            delBtn.title = 'Remover';
+            delBtn.style.background = 'transparent'; delBtn.style.border = 'none'; delBtn.style.color = '#ff8080'; delBtn.style.cursor = 'pointer';
+            delBtn.onclick = async () => {
+                const id = item._id || item.id;
+                if(!id){ alert('Não foi possível remover: id ausente'); return; }
+                const ok = await deleteReminderOnServer(id);
+                if(ok){
+                    // remover elemento do card
+                    if(it && it.parentNode) it.parentNode.removeChild(it);
+                    // se o card só tiver o título, remover o card também
+                    const onlyTitle = card.querySelectorAll('.reminder-item').length === 0;
+                    if(onlyTitle && card.parentNode) card.parentNode.removeChild(card);
+                } else {
+                    alert('Erro ao remover lembrete.');
+                }
+            };
+
+            actions.appendChild(delBtn);
+            it.appendChild(time); it.appendChild(info); it.appendChild(actions);
+            card.appendChild(it);
+        }
+
+        // Modal controls
+        const addBtn = document.getElementById('addReminderBtn');
+        const modal = document.getElementById('reminderModal');
+        const closeModalBtn = document.getElementById('closeModal');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const form = document.getElementById('reminderForm');
+
+        addBtn.addEventListener('click', ()=>{
+            modal.setAttribute('aria-hidden','false');
+            form.reset();
+            const hoje = new Date().toISOString().slice(0,10);
+            document.getElementById('r-dataInicio').value = hoje;
+            document.getElementById('r-dataTermino').value = hoje;
+        });
+        closeModalBtn.addEventListener('click', ()=> modal.setAttribute('aria-hidden','true'));
+        cancelBtn.addEventListener('click', ()=> modal.setAttribute('aria-hidden','true'));
+
+        form.addEventListener('submit', async (e)=>{
+            e.preventDefault();
+            // Determina o idCriador a partir do usuário logado (localStorage ou função disponível)
+            let idCriador = 0;
+            try{
+                if(typeof window.getCurrentUser === 'function'){
+                    const u = window.getCurrentUser();
+                    idCriador = Number(u && u.userId) || 0;
+                }
+            }catch(e){ /* ignore */ }
+            if(!idCriador){
+                try{ idCriador = Number(localStorage.getItem('pollen_user_id')) || 0; }catch(e){ idCriador = 0; }
+            }
+
+            const rem = {
+                titulo: document.getElementById('r-titulo').value,
+                corpo: document.getElementById('r-corpo').value,
+                idCriador: idCriador,
+                dataInicio: document.getElementById('r-dataInicio').value,
+                dataTermino: document.getElementById('r-dataTermino').value || document.getElementById('r-dataInicio').value
+            };
+            try{
+                const createdRaw = await createReminderOnServer(rem);
+                console.log('Resposta do POST (raw):', createdRaw);
+
+                // Tentar descompactar formatos comuns: { data: obj } | { result: obj } | obj
+                let createdObj = createdRaw;
+                if(createdRaw && typeof createdRaw === 'object'){
+                    if(Array.isArray(createdRaw) && createdRaw.length === 1) createdObj = createdRaw[0];
+                    else if(createdRaw.data && (typeof createdRaw.data === 'object' || Array.isArray(createdRaw.data))) createdObj = createdRaw.data;
+                    else if(createdRaw.result && (typeof createdRaw.result === 'object' || Array.isArray(createdRaw.result))) createdObj = createdRaw.result;
+                    else if(createdRaw.created && (typeof createdRaw.created === 'object')) createdObj = createdRaw.created;
+                }
+
+                // Se veio um array, pegar o primeiro elemento (comportamento comum em algumas APIs)
+                if(Array.isArray(createdObj) && createdObj.length > 0) createdObj = createdObj[0];
+
+                console.log('Resposta do POST (unwrapped):', createdObj);
+
+                if(createdObj && typeof createdObj === 'object' && (createdObj._id || createdObj.id || createdObj.titulo)){
+                    addSingleReminderToDOM(createdObj);
+                    modal.setAttribute('aria-hidden','true');
+                } else {
+                    // fallback: re-carregar tudo
+                    console.warn('Resposta do POST não continha objeto criado. Usando re-fetch.');
+                    await renderReminders();
+                    modal.setAttribute('aria-hidden','true');
+                }
+            }catch(err){
+                console.error('Erro no POST:', err);
+                alert('Erro ao salvar lembrete no servidor: '+ (err.message || err));
+            }
+        });
+
+        // inicializa
+        document.addEventListener('DOMContentLoaded', ()=>{ renderReminders(); });
+    </script>
+</body>
+
+</html>
