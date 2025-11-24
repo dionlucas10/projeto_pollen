@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarefas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="tarefas.css">
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <div class="logo-icon">
+                        <img src="IMG/logo.png" alt="pollen-logo">
+                    </div>
+
+                </div>
+                <button class="toggle-btn" id="toggleBtn">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" placeholder="Search for...">
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="home.html" class="nav-item active">
+                    <i class="fas fa-home nav-icon"></i>
+                    <span class="nav-text">Home</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-sticky-note nav-icon"></i>
+                    <span class="nav-text">Lembretes</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-tasks nav-icon"></i>
+                    <span class="nav-text">Tarefas</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-users nav-icon"></i>
+                    <span class="nav-text">Colmeia</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-calendar nav-icon"></i>
+                    <span class="nav-text">Agendar</span>
+                </a>
+                <a href="#" class="nav-item dropdown-item">
+                    <div class="nav-icon-container">
+                        <svg class="nav-icon pollen-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M50 10 L65 20 L65 40 L50 50 L35 40 L35 20 Z" fill="currentColor" />
+                            <path d="M50 50 L65 60 L65 80 L50 90 L35 80 L35 60 Z" fill="currentColor" />
+                            <path d="M15 50 L30 60 L30 80 L15 90 L0 80 L0 60 Z" fill="currentColor" />
+                            <path d="M85 50 L100 60 L100 80 L85 90 L70 80 L70 60 Z" fill="currentColor" />
+                        </svg>
+                    </div>
+                    <span class="nav-text">Colmeia</span>
+                    <i class="fas fa-chevron-down dropdown-arrow"></i>
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="main-header">
+                <h1 class="page-title">Tarefas</h1>
+                <div class="header-actions">
+                    <button id="addTaskBtn" class="add-task-btn" aria-label="Adicionar tarefa">
+                        <i class="fas fa-plus"></i>
+                        <span class="btn-text">Adicionar</span>
+                    </button>
+                </div>
+            </header>
+
+            <section class="tasks-section">
+                <div class="tasks-carousel" aria-roledescription="carousel">
+                    <div class="carousel-viewport">
+                        <div class="carousel-track" role="list"></div>
+                    </div>
+                    <div class="carousel-controls" aria-hidden="false">
+                        <button class="carousel-btn prev-btn" aria-label="Anterior">‹</button>
+                        <button class="carousel-btn next-btn" aria-label="Próximo">›</button>
+                    </div>
+                    <div class="carousel-dots" role="tablist" aria-label="Navegação do carrossel"></div>
+                </div>
+            </section>
+        </main>
+
+        
+    </div>
+    <!-- Modal de adicionar tarefa -->
+    <div id="taskModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-overlay"></div>
+        <div class="modal-content" role="document">
+            <h2 id="modalTitle">Adicionar Tarefa</h2>
+            <form id="taskForm">
+                <div class="form-row">
+                    <label for="taskTitle">Título</label>
+                    <input id="taskTitle" name="title" type="text" required maxlength="120" />
+                </div>
+                <div class="form-row form-row-inline">
+                    <label for="taskDone" class="inline-label"><input id="taskDone" name="done" type="checkbox" /> Concluída</label>
+                </div>
+                <div class="form-row">
+                    <label for="taskDesc">Descrição</label>
+                    <textarea id="taskDesc" name="desc" rows="6" maxlength="2000" placeholder="Detalhes da tarefa..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" id="cancelTaskBtn" class="btn cancel">Cancelar</button>
+                    <button type="button" id="deleteTaskBtn" class="btn cancel" style="display:none;">Excluir</button>
+                    <button type="submit" id="submitTaskBtn" class="btn primary">Adicionar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script src="slidebar.js"></script>
+    <script src="servertarefa.js"></script>
+    <script src="carroseltarefa.js"></script>
+</body>
+
+</html>

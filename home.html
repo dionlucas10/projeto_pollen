@@ -46,7 +46,7 @@
                     <i class="fas fa-sticky-note nav-icon"></i>
                     <span class="nav-text">Lembretes</span>
                 </a>
-                <a href="#" class="nav-item">
+                <a href="tarefas.html" class="nav-item">
                     <i class="fas fa-tasks nav-icon"></i>
                     <span class="nav-text">Tarefas</span>
                 </a>
@@ -76,6 +76,12 @@
         <!-- Carrosel -->
         <main class="main-content" id="mainContent">
             <div class="welcome-section">
+                <!-- Botão de Desconexão Flutuante -->
+                <button class="logout-btn" onclick="desconectar()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Desconectar
+                </button>
+
                 <!-- Formas animadas de fundo -->
                 <div class="animated-shapes">
                     <div class="shape shape-1"></div>
@@ -85,7 +91,7 @@
                 
                 <!-- Conteúdo -->
                 <div class="welcome-content">
-                    <h1 class="welcome-title">Bem-vindo Bode! 🐝</h1>
+                    <h1 class="welcome-title">Bem-vindo <span id="userName">Bode</span>! 🐝</h1>
                     <p class="welcome-text">
                         Pellentesque convallis accumsan suscipit aliquet eu diam quis nulla turpis. 
                         In mus massa lectus laoreet sed semper bibendum id. laculis purus malesuada 
@@ -322,6 +328,30 @@
         </main>
     </div>
 
-    <script src="home.js"></script>
+</script>
+        <script src="slidebar.js"></script>
+        <script>
+            function desconectar() {
+                // Limpar dados do localStorage
+                localStorage.removeItem('pollen_user_name');
+                localStorage.removeItem('pollen_user_email');
+                localStorage.removeItem('pollen_user_id');
+                
+                // Redirecionar para index.html
+                window.location.href = 'index.html';
+            }
+
+            (function() {
+                try {
+                    const nome = localStorage.getItem('pollen_user_name');
+                    if (nome) {
+                        const el = document.getElementById('userName');
+                        if (el) el.textContent = nome;
+                    }
+                } catch (e) {
+                    console.warn('Erro ao recuperar nome do localStorage:', e);
+                }
+            })();
+        </script>
 </body>
 </html>
