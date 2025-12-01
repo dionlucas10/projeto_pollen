@@ -29,8 +29,33 @@
             }
 
             function saveData() {
-                // Dados agora são salvos apenas na API, não no localStorage
-                // localStorage.setItem(STORAGE_KEY, JSON.stringify(tasksData));
+                try {
+                    const copy = (tasksData || []).map(t => Object.assign({}, t));
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(copy));
+                    console.debug('LocalStorage salvo com', copy.length, 'tarefas');
+                } catch (e) {
+                    console.warn('Não foi possível salvar em localStorage:', e && e.message ? e.message : e);
+                }
+            }
+
+            function loadDataFromStorage() {
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY);
+                    if (!raw) return [];
+                    const parsed = JSON.parse(raw);
+                    if (!Array.isArray(parsed)) return [];
+                    return parsed.map(item => ({
+                        id: item.id ?? item._id ?? item.idTarefa ?? item.id,
+                        title: item.title ?? item.titulo ?? item.nome ?? '',
+                        desc: item.desc ?? item.corpo ?? item.body ?? item.descricao ?? '',
+                        done: Boolean(item.done ?? item.concluido ?? item.completed ?? false),
+                        idCriador: Number(item.idCriador ?? item.idUsuario ?? 0) || null,
+                        _local: !!item._local
+                    }));
+                } catch (e) {
+                    console.warn('Erro ao ler localStorage:', e && e.message ? e.message : e);
+                    return [];
+                }
             }
 
             function loadDataFromDOM() {
@@ -75,24 +100,31 @@
                         console.error('getTasksForUser retornou erro:', { status: result.status, data: result.data, error: result.error });
                     }
 
-                    if (result && result.ok) {
-                        const apiTasks = Array.isArray(result.data) ? result.data : [];
-                        tasksData = apiTasks.map(task => {
-                            const id = task.id ?? task._id ?? task.idTarefa ?? null;
-                            const title = task.titulo ?? task.title ?? task.nome ?? '';
-                            const desc = task.corpo ?? task.desc ?? task.body ?? task.descricao ?? '';
-                            const done = Boolean(task.concluido ?? task.done ?? task.completed ?? false);
-                            const idCriador = Number(task.idUsuario ?? task.idCriador ?? task.idCreator ?? task.userId ?? 0) || null;
-                            return { id, title, desc, done, idCriador };
-                        });
-                        console.log('Tarefas mapeadas:', tasksData);
-                    } else {
-                        console.warn('getTasksForUser retornou erro ou dados inválidos:', result);
-                        tasksData = [];
+                    const apiTasks = (result && result.ok && Array.isArray(result.data)) ? result.data.map(task => ({
+                        id: task.id ?? task._id ?? task.idTarefa ?? null,
+                        title: task.titulo ?? task.title ?? task.nome ?? '',
+                        desc: task.corpo ?? task.desc ?? task.body ?? task.descricao ?? '',
+                        done: Boolean(task.concluido ?? task.done ?? task.completed ?? false),
+                        idCriador: Number(task.idUsuario ?? task.idCriador ?? task.idCreator ?? task.userId ?? 0) || null
+                    })) : [];
+
+                    // Carregar tarefas locais e manter as que não tiverem id de servidor
+                    const localTasks = loadDataFromStorage();
+                    const localOnly = localTasks.filter(t => !t.id || String(t.id).startsWith('local-') || t._local);
+
+                    // Unir: priorizar API (por id) e então anexar locais não sincronizados
+                    tasksData = apiTasks.slice();
+                    if (localOnly.length) {
+                        // garantir que não haja duplicatas óbvias
+                        localOnly.forEach(lt => tasksData.push(Object.assign({}, lt, { _local: true })));
                     }
+                    // Atualizar armazenamento local para refletir o estado atual (API + pendentes)
+                    saveData();
+                    console.log('Tarefas carregadas. API:', apiTasks.length, 'Locais (pendentes):', localOnly.length);
                 } catch (e) {
                     console.error('Erro ao carregar tarefas da API:', e);
-                    tasksData = [];
+                    // Em caso de erro na API, carregar apenas as tarefas locais
+                    tasksData = loadDataFromStorage();
                 }
 
                 isLoadingFromAPI = false;
@@ -288,14 +320,24 @@
             async function addTaskLocal(title, desc, done = false) {
                 // Chama API
                 const res = await addTaskToAPI(title, desc, done);
+                // Se não conseguiu salvar na API, persistir localmente sem mostrar alerta
                 if (!res || !res.ok) {
-                    console.error('Falha ao criar tarefa:', res);
-                    let details = '';
-                    if (!res) details = 'sem resposta da API.';
-                    else if (res.error) details = res.error.message || String(res.error);
-                    else details = 'Status: ' + (res.status || 'unknown');
-                    alert('Erro ao salvar tarefa na API. ' + details + ' Veja o console para mais detalhes.');
-                    return null;
+                    console.warn('Falha ao criar tarefa na API. Salvando localmente como pendente.', res);
+                    const user = getCurrentUser();
+                    const localTask = {
+                        id: 'local-' + Date.now() + '-' + Math.round(Math.random() * 1000),
+                        title,
+                        desc,
+                        done: !!done,
+                        idCriador: user.userId || null,
+                        _local: true
+                    };
+                    tasksData.push(localTask);
+                    saveData();
+                    renderAll();
+                    goTo(Math.max(0, tasksData.length - 1));
+                    startAutoplay();
+                    return localTask;
                 }
 
                 // Após sucesso no POST, recarregar a lista do servidor para garantir consistência
