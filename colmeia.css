@@ -1,0 +1,500 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: #000000;
+    overflow-x: hidden;
+    overflow-y: auto;
+    color: #ffffff;
+}
+
+.dashboard-container {
+    display: flex;
+    min-height: 100vh;
+    width: 100vw;
+}
+
+/* garante que a área principal ocupe o espaço restante ao lado da sidebar */
+.main-content {
+    flex: 1 1 auto;
+    position: relative;
+    min-height: 100vh;
+}
+
+/* Sidebar Styles */
+.sidebar {
+    width: 280px;
+    background: #1a1a1a;
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s ease;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+    position: relative;
+    z-index: 1000;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar.collapsed {
+    width: 80px;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.sidebar.collapsed .sidebar-header {
+    justify-content: center;
+    padding: 1.5rem 0.5rem;
+    position: relative;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.sidebar.collapsed .logo-container {
+    justify-content: center;
+    width: 100%;
+    flex: 0;
+}
+
+.logo-icon {
+    width: 56px;
+    height: 56px;
+    color: #FFC61A;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin: 0 auto;
+}
+
+.sidebar.collapsed .logo-icon {
+    width: 48px;
+    height: 48px;
+}
+
+.logo-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.logo-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.logo-text {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #FFC61A;
+    letter-spacing: 0.5px;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar.collapsed .logo-text {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+}
+
+.toggle-btn {
+    background: none;
+    border: none;
+    color: #cccccc;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+}
+
+.sidebar.collapsed .toggle-btn {
+    position: absolute;
+    right: -16px;
+    top: 1.5rem;
+    background: #1a1a1a;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 1001;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar:not(.collapsed) .toggle-btn {
+    position: static;
+}
+
+.toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #FFC61A;
+}
+
+.sidebar.collapsed .toggle-btn i {
+    transform: rotate(180deg);
+}
+
+/* Search Container */
+.search-container {
+    position: relative;
+    margin: 1rem 1.25rem;
+    transition: all 0.3s ease;
+}
+
+.search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #cccccc;
+    font-size: 0.875rem;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.75rem;
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    font-size: 0.875rem;
+    color: #ffffff;
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.search-input::placeholder {
+    color: #999;
+}
+
+.sidebar.collapsed .search-container {
+    opacity: 0;
+    height: 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+/* Navigation */
+.sidebar-nav {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.sidebar.collapsed .sidebar-nav {
+    padding: 0.5rem 0;
+    align-items: center;
+    width: 100%;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 0.875rem 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 10px;
+    text-decoration: none;
+    color: #cccccc;
+    transition: all 0.3s ease;
+    position: relative;
+    white-space: nowrap;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.nav-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar.collapsed .nav-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+}
+
+.nav-item.active {
+    background: rgba(255, 198, 26, 0.2);
+    color: #FFC61A;
+}
+
+.nav-icon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.125rem;
+    color: inherit;
+}
+
+.sidebar.collapsed .nav-icon {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-icon-container {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.sidebar.collapsed .nav-icon-container {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pollen-icon {
+    width: 20px;
+    height: 20px;
+    color: inherit;
+}
+
+.nav-text {
+    margin-left: 0.75rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    transition: opacity 0.3s ease;
+    flex: 1;
+}
+
+.sidebar.collapsed .nav-item .nav-text {
+    margin-left: 0;
+}
+
+.sidebar.collapsed .nav-text {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+}
+
+.dropdown-item {
+    justify-content: space-between;
+}
+
+.sidebar.collapsed .dropdown-item {
+    justify-content: center;
+}
+
+.dropdown-arrow {
+    font-size: 0.75rem;
+    margin-left: auto;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar.collapsed .dropdown-arrow {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+}
+
+.sidebar.collapsed .nav-item {
+    justify-content: center;
+    align-items: center;
+    padding: 0.875rem;
+    width: 48px;
+    height: 48px;
+    margin: 0 auto;
+    margin-bottom: 0.5rem;
+}
+
+.sidebar.collapsed .nav-item.active {
+    background: rgba(255, 198, 26, 0.2);
+    border-radius: 12px;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.875rem;
+    margin: 0 auto;
+    margin-bottom: 0.5rem;
+}
+
+/* Hive / Favo (pentágono) styles */
+.hive-area {
+    width: 100%;
+    padding: 3rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    position: static;
+    min-height: calc(100vh - 120px);
+    align-items: stretch; /* mantém o header alinhado à esquerda, permitindo que o canvas centralize por conta própria */
+    justify-content: flex-start;
+}
+.hive-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.hive-header h2 { color: #FFC61A; }
+.hive-actions .add-favo { background: #FFC61A; color: #000; border: none; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; }
+
+.hive-grid {
+    /* agora o grid usa posicionamento absoluto para posicionar hexes ao redor do centro */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: auto;
+    height: auto;
+    pointer-events: none; /* favos usarão pointer-events individuais (set via .hive-grid .favo) */
+    z-index: 20; /* abaixo do centro (que tem z-index:30) */
+}
+
+/* Canvas que centraliza visualmente a colmeia dentro da área principal */
+.hive-canvas {
+    position: relative;
+    /* largura agora relativa ao contêiner pai (.hive-area) para evitar centralizar em relação à viewport inteira */
+    width: min(920px, calc(100% - 4rem));
+    max-width: 100%;
+    height: 560px; /* valor inicial; ajustar se quiser favos maiores/mais anéis */
+    margin: 2.5rem auto 0; /* empurra para baixo (abaixo do header) e centraliza horizontalmente */
+    display: block; /* não centraliza o header — apenas o canvas */
+    overflow: visible;
+}
+
+/* Permitir que cada favo receba eventos mesmo que o pai (.hive-grid) tenha pointer-events:none */
+.hive-grid .favo { pointer-events: auto; }
+
+/* Cada favo é um pentágono usando clip-path */
+.favo {
+    width: 110px;
+    height: 95px; /* regular-ish hexagon proportion */
+    background: linear-gradient(180deg, #FFC61A 0%, #E6B317 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+    /* hexagon */
+    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+    /* smoother transitions and hint for compositor */
+    transition: transform 220ms cubic-bezier(.2,.9,.3,1), box-shadow 220ms ease, filter 220ms ease;
+    will-change: transform, box-shadow;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+}
+.favo img { width: 60%; height: 60%; object-fit: contain; }
+.favo:hover { transform: translateY(-6px) scale(1.03); box-shadow: 0 12px 26px rgba(0,0,0,0.28); }
+
+/* subtle sheen that slides across the favo on hover */
+.favo::before{
+    content: "";
+    position: absolute;
+    top: -30%;
+    left: -50%;
+    width: 200%;
+    height: 160%;
+    background: linear-gradient(120deg, rgba(255,255,255,0.00) 0%, rgba(255,255,255,0.10) 45%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0.10) 55%, rgba(255,255,255,0.00) 100%);
+    transform: rotate(20deg) translateX(-120%);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 420ms cubic-bezier(.2,.9,.3,1), opacity 300ms ease;
+    mix-blend-mode: screen;
+}
+.favo:hover::before{ transform: rotate(20deg) translateX(30%); opacity: 1; }
+
+/* small pop animation to make hover feel tactile */
+/* removed keyframe animation to avoid transform conflicts; transitions handle the pop effect */
+
+/* active (press) state */
+.favo:active{ transform: translateY(-2px) scale(0.99); box-shadow: 0 8px 20px rgba(0,0,0,0.22); transition: transform 120ms ease; }
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce){
+    .favo, .favo::before { transition: none !important; animation: none !important; }
+}
+
+/* removed nth-child static transforms: positioning is handled by JS now */
+
+/* central decorative favo */
+.hive-center{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:30; pointer-events:none; }
+.hive-center .favo{ width:150px; height:130px; box-shadow: 0 14px 40px rgba(0,0,0,0.45); }
+.hive-center .favo img{ width:70%; height:70%; }
+
+/* Tooltip: um elemento global criado por JS e posicionado sobre o body */
+#favoTooltip{
+    position: absolute;
+    pointer-events: none;
+    background: rgba(0,0,0,0.88);
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    white-space: nowrap;
+    font-size: 0.9rem;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+    z-index: 99999;
+    transform-origin: center bottom;
+    opacity: 0;
+    transform: translateY(0px);
+    transition: opacity 160ms ease, transform 160ms cubic-bezier(.2,.9,.3,1);
+}
+#favoTooltip.show{ opacity: 1; transform: translateY(-6px); }
+
+@media (prefers-reduced-motion: reduce){
+    #favoTooltip{ transition: none !important; }
+}
+
+/* Modal (reuse modal styles similar to other pages) */
+.modal-overlay { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); z-index: 2000; }
+.modal-overlay[aria-hidden="false"] { display: flex; }
+.modal { background: #121212; color: #fff; padding: 1.25rem; border-radius: 10px; width: 360px; max-width: 92%; box-shadow: 0 8px 30px rgba(0,0,0,0.6); }
+.modal h3 { margin-bottom: 0.75rem; color: #FFC61A; }
+.modal label { display:block; margin-top:0.5rem; margin-bottom:0.25rem; font-size:0.9rem; }
+.modal input, .modal textarea { width:100%; padding:0.5rem; border-radius:6px; border:1px solid rgba(255,255,255,0.06); background:#0f0f0f; color:#fff; }
+.modal-actions { display:flex; justify-content:flex-end; gap:0.5rem; margin-top:0.75rem; }
+.btn.ghost { background:transparent; color:#fff; border:1px solid rgba(255,255,255,0.08); padding:0.5rem 0.75rem; border-radius:6px; cursor:pointer; }
+.btn.primary { background:#FFC61A; border:none; color:#000; padding:0.5rem 0.75rem; border-radius:6px; cursor:pointer; }
+
+/* view modal specifics */
+#favoViewModal .modal { max-width: 520px; }
+#favoViewModal .favo-body { white-space: pre-wrap; line-height: 1.5; }
+#favoViewModal .btn { background: #FFC61A; color: #000; border-radius:6px; padding:0.5rem 0.75rem; border: none; cursor: pointer; }
+#favoViewModal .btn.ghost { background: transparent; color: #fff; border:1px solid rgba(255,255,255,0.08); }
+/* delete button keeps inline style (no extra rules needed) */
+
+/* pequenos ajustes responsivos */
+@media (max-width:600px){
+    .favo{ width:90px;height:90px }
+    .hive-grid .favo:nth-child(odd){ margin-top:12px }
+}

@@ -2,7 +2,7 @@
 // Fornece métodos assíncronos expostos em window.serverTarefa:
 // setApiUrl(url), createTask(payload), getTasks(), updateTask(id,payload), deleteTask(id), getTasksForUser(userId)
 (function () {
-    const DEFAULT_API = 'https://daccf75f6eef.ngrok-free.app/tarefas';
+    const DEFAULT_API = 'https://375a1444b38a.ngrok-free.app/tarefas';
     let API_URL = DEFAULT_API;
     let CURRENT_USER_ID = null;
 

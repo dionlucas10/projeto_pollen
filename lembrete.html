@@ -16,7 +16,7 @@
             <div class="sidebar-header">
                 <div class="logo-container">
                     <div class="logo-icon">
-                        <img src="IMG/logo.png" alt="pollen-logo">
+                        <img src="IMG/logo.svg" alt="pollen-logo">
                     </div>
 
                 </div>
@@ -43,15 +43,11 @@
                     <i class="fas fa-tasks nav-icon"></i>
                     <span class="nav-text">Tarefas</span>
                 </a>
-                <a href="#" class="nav-item">
-                    <i class="fas fa-users nav-icon"></i>
-                    <span class="nav-text">Colmeia</span>
-                </a>
-                <a href="#" class="nav-item">
+                <a href="agendar.html" class="nav-item">
                     <i class="fas fa-calendar nav-icon"></i>
                     <span class="nav-text">Agendar</span>
                 </a>
-                <a href="#" class="nav-item dropdown-item">
+                <a href="colmeia.html" class="nav-item dropdown-item">
                     <div class="nav-icon-container">
                         <svg class="nav-icon pollen-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                             <path d="M50 10 L65 20 L65 40 L50 50 L35 40 L35 20 Z" fill="currentColor" />
@@ -123,6 +119,8 @@
         // Uso da API real (GET/POST/DELETE) definida em server.lembretes.js
         const API_BASE = window.LembretesAPI && window.LembretesAPI.baseUrl ? window.LembretesAPI.baseUrl : 'https://daccf75f6eef.ngrok-free.app/lembretes';
 
+        const LS_KEY = 'pollen_reminders';
+
         function formatDateKey(dateStr){
             if(!dateStr) return '';
             const d = new Date(dateStr + 'T00:00:00');
@@ -134,32 +132,15 @@
             return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
         }
 
-        // wrappers que usam o módulo `server.lembretes.js` (window.LembretesAPI)
-        async function fetchReminders(){
-            try{ return await window.LembretesAPI.getAll(); }catch(err){ console.error('Erro ao buscar lembretes:', err); return []; }
-        }
+        // A lógica de cache/sync foi movida para `server.lembretes.js`.
+        // Use as funções expostas em `window.LembretesAPI`:
+        // - getAllMerged() -> retorna lista mesclada (servidor + pendentes locais)
+        // - createWithFallback(rem) -> tenta criar no servidor; se falhar salva localmente
+        // - removeWithFallback(id) -> remove local ou servidor conforme necessário
+        // - syncLocalUnsynced() -> tenta enviar pendentes ao servidor
 
-        async function createReminderOnServer(rem){
-            return await window.LembretesAPI.create(rem);
-        }
-
-        async function deleteReminderOnServer(id){
-            return await window.LembretesAPI.remove(id);
-        }
-
-        async function renderReminders(){
-            const raw = await fetchReminders();
-            let list = raw;
-            // Normalizar resposta: alguns backends retornam { data: [...] } ou { result: [...] }
-            if(!Array.isArray(list)){
-                if(list && Array.isArray(list.data)) list = list.data;
-                else if(list && Array.isArray(list.result)) list = list.result;
-                else {
-                    console.warn('fetchReminders retornou formato inesperado:', raw);
-                    list = [];
-                }
-            }
-
+        // Rendering helpers
+        function renderList(list){
             const grid = document.getElementById('remindersGrid');
             grid.innerHTML = '';
             if(!list || list.length === 0){ grid.innerHTML = '<p style="color:#aaa;">Nenhum lembrete. Clique em "Adicionar" para criar um.</p>'; return; }
@@ -213,10 +194,12 @@
                     delBtn.style.color = '#ff8080';
                     delBtn.style.cursor = 'pointer';
                     delBtn.onclick = async ()=>{
-                        const id = item._id || item.id;
+                        const id = item._id || item.id || item._tmpId;
                         if(!id){ alert('Não foi possível remover: id ausente'); return; }
-                        const ok = await deleteReminderOnServer(id);
-                        if(ok) await renderReminders(); else alert('Erro ao remover lembrete.');
+                        try{
+                            const ok = await window.LembretesAPI.removeWithFallback(id);
+                            if(ok) await renderReminders(); else alert('Erro ao remover lembrete.');
+                        }catch(e){ console.error('Erro em removeWithFallback', e); alert('Erro ao remover lembrete.'); }
                     };
 
                     actions.appendChild(delBtn);
@@ -231,62 +214,16 @@
             });
         }
 
-        // Adiciona um único lembrete ao DOM (sem re-fazer GET completo)
-        function addSingleReminderToDOM(item){
-            if(!item) return;
-            const grid = document.getElementById('remindersGrid');
-            const key = formatDateKey(item.dataInicio || item.dataTermino || '');
-            const dateLabel = key ? formatDateLabel(key) : 'Sem data';
-
-            // procurar card existente para a data
-            let card = Array.from(grid.children).find(c => c.querySelector('.date-title')?.textContent === dateLabel);
-            if(!card){
-                card = document.createElement('div');
-                card.className = 'reminder-card';
-                const title = document.createElement('div');
-                title.className = 'date-title';
-                title.textContent = dateLabel;
-                card.appendChild(title);
-                grid.appendChild(card);
+        // Renderiza a lista usando API centralizada (server.lembretes.js)
+        async function renderReminders(){
+            try{
+                const merged = await window.LembretesAPI.getAllMerged();
+                renderList(merged || []);
+            }catch(e){
+                console.error('Erro ao renderizar lembretes via LembretesAPI:', e);
+                // fallback: tenta renderizar cache local se disponível
+                try{ const cached = (window.LembretesAPI && window.LembretesAPI.getCached) ? window.LembretesAPI.getCached() : []; renderList(cached); }catch(err){ renderList([]); }
             }
-
-            const it = document.createElement('div');
-            it.className = 'reminder-item';
-
-            const time = document.createElement('div');
-            time.className = 'time';
-            time.textContent = (item.dataInicio || '') + (item.dataTermino ? ' → '+item.dataTermino : '');
-
-            const info = document.createElement('div');
-            const t = document.createElement('div'); t.className = 'title'; t.textContent = item.titulo || '';
-            const d = document.createElement('div'); d.className = 'desc'; d.textContent = item.corpo || '';
-            info.appendChild(t); info.appendChild(d);
-
-            const actions = document.createElement('div');
-            actions.style.marginLeft = 'auto'; actions.style.display = 'flex'; actions.style.alignItems = 'center';
-
-            const delBtn = document.createElement('button');
-            delBtn.innerHTML = '<i class="fas fa-trash"></i>';
-            delBtn.title = 'Remover';
-            delBtn.style.background = 'transparent'; delBtn.style.border = 'none'; delBtn.style.color = '#ff8080'; delBtn.style.cursor = 'pointer';
-            delBtn.onclick = async () => {
-                const id = item._id || item.id;
-                if(!id){ alert('Não foi possível remover: id ausente'); return; }
-                const ok = await deleteReminderOnServer(id);
-                if(ok){
-                    // remover elemento do card
-                    if(it && it.parentNode) it.parentNode.removeChild(it);
-                    // se o card só tiver o título, remover o card também
-                    const onlyTitle = card.querySelectorAll('.reminder-item').length === 0;
-                    if(onlyTitle && card.parentNode) card.parentNode.removeChild(card);
-                } else {
-                    alert('Erro ao remover lembrete.');
-                }
-            };
-
-            actions.appendChild(delBtn);
-            it.appendChild(time); it.appendChild(info); it.appendChild(actions);
-            card.appendChild(it);
         }
 
         // Modal controls
@@ -327,41 +264,31 @@
                 dataInicio: document.getElementById('r-dataInicio').value,
                 dataTermino: document.getElementById('r-dataTermino').value || document.getElementById('r-dataInicio').value
             };
+
+            // Use API centralizada (tenta criar no servidor e faz fallback local automaticamente)
             try{
-                const createdRaw = await createReminderOnServer(rem);
-                console.log('Resposta do POST (raw):', createdRaw);
-
-                // Tentar descompactar formatos comuns: { data: obj } | { result: obj } | obj
-                let createdObj = createdRaw;
-                if(createdRaw && typeof createdRaw === 'object'){
-                    if(Array.isArray(createdRaw) && createdRaw.length === 1) createdObj = createdRaw[0];
-                    else if(createdRaw.data && (typeof createdRaw.data === 'object' || Array.isArray(createdRaw.data))) createdObj = createdRaw.data;
-                    else if(createdRaw.result && (typeof createdRaw.result === 'object' || Array.isArray(createdRaw.result))) createdObj = createdRaw.result;
-                    else if(createdRaw.created && (typeof createdRaw.created === 'object')) createdObj = createdRaw.created;
-                }
-
-                // Se veio um array, pegar o primeiro elemento (comportamento comum em algumas APIs)
-                if(Array.isArray(createdObj) && createdObj.length > 0) createdObj = createdObj[0];
-
-                console.log('Resposta do POST (unwrapped):', createdObj);
-
-                if(createdObj && typeof createdObj === 'object' && (createdObj._id || createdObj.id || createdObj.titulo)){
-                    addSingleReminderToDOM(createdObj);
-                    modal.setAttribute('aria-hidden','true');
-                } else {
-                    // fallback: re-carregar tudo
-                    console.warn('Resposta do POST não continha objeto criado. Usando re-fetch.');
-                    await renderReminders();
-                    modal.setAttribute('aria-hidden','true');
-                }
+                const created = await window.LembretesAPI.createWithFallback(rem);
+                console.debug('createWithFallback result=', created);
+                await renderReminders();
+                modal.setAttribute('aria-hidden','true');
             }catch(err){
-                console.error('Erro no POST:', err);
-                alert('Erro ao salvar lembrete no servidor: '+ (err.message || err));
+                console.error('Erro ao criar lembrete via LembretesAPI:', err);
+                alert('Erro ao salvar lembrete: '+ (err && err.message ? err.message : err));
             }
         });
 
         // inicializa
-        document.addEventListener('DOMContentLoaded', ()=>{ renderReminders(); });
+        document.addEventListener('DOMContentLoaded', async ()=>{
+            console.debug('DOMContentLoaded: loading reminders and trying sync');
+            await renderReminders();
+            try{ await window.LembretesAPI.syncLocalUnsynced(); console.debug('syncLocalUnsynced on load finished'); }catch(e){ console.warn('syncLocalUnsynced on load failed', e); }
+        });
+
+        // quando o navegador ficar online, tenta sincronizar
+        window.addEventListener('online', async ()=>{
+            console.debug('navigator online: attempting syncLocalUnsynced');
+            try{ await window.LembretesAPI.syncLocalUnsynced(); console.debug('syncLocalUnsynced on online finished'); await renderReminders(); }catch(e){ console.warn('sync on online failed', e); }
+        });
     </script>
 </body>
 

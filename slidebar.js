@@ -20,6 +20,30 @@ window.addEventListener('DOMContentLoaded', () => {
     if (isCollapsed) {
         sidebar.classList.add('collapsed');
     }
+
+    // Marcar o item ativo com base na página atual
+    try {
+        const currentFile = window.location.pathname.split('/').pop();
+        // Procura um nav-item cujo href corresponda ao arquivo atual
+        let matched = null;
+        document.querySelectorAll('.nav-item').forEach(nav => {
+            const href = nav.getAttribute('href');
+            if (!href) return;
+            // comparação direta (relativa) ou via href absoluto
+            const hrefFile = href.split('/').pop();
+            if (hrefFile === currentFile || href === currentFile) matched = nav;
+            // também aceita quando href é './' ou '' (não marcado)
+        });
+
+        if (matched) {
+            // remove active de outros e aplica no encontrado
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+            matched.classList.add('active');
+        }
+    } catch (err) {
+        // silencioso: se algo falhar, não quebrou a sidebar
+        console.warn('Não foi possível marcar o item ativo automaticamente:', err);
+    }
 });
 
 // Adiciona interatividade aos itens do menu
@@ -33,10 +57,15 @@ document.querySelectorAll('.nav-item').forEach(item => {
         // Adiciona active ao item clicado
         this.classList.add('active');
         
-        // Se for um dropdown, previne o comportamento padrão
+        // Se for um dropdown e não possuir um link válido (ex: href="#"), previne o comportamento padrão
         if (this.classList.contains('dropdown-item')) {
-            e.preventDefault();
-            // Aqui você pode adicionar lógica para expandir o dropdown
+            const href = this.getAttribute('href');
+            const isPlaceholder = !href || href === '#';
+            if (isPlaceholder) {
+                e.preventDefault();
+                // Aqui você pode adicionar lógica para expandir o dropdown
+            }
+            // Se o item tiver um href válido (ex: 'colmeia.html'), deixamos o comportamento padrão
         }
     });
 });

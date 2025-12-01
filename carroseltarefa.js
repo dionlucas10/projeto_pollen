@@ -68,8 +68,12 @@
 
                 try {
                     console.log('Carregando tarefas da API para userId:', user.userId);
+                    try { console.log('serverTarefa._internal (info):', window.serverTarefa && window.serverTarefa._internal); } catch(e){}
                     const result = await window.serverTarefa.getTasksForUser(user.userId);
                     console.log('Resultado da API (getTasksForUser):', result);
+                    if (result && !result.ok) {
+                        console.error('getTasksForUser retornou erro:', { status: result.status, data: result.data, error: result.error });
+                    }
 
                     if (result && result.ok) {
                         const apiTasks = Array.isArray(result.data) ? result.data : [];
@@ -259,8 +263,12 @@
                         concluido: Boolean(done)
                     };
                     console.log('📤 Chamando createTask com payload:', payload);
+                    try { console.log('serverTarefa._internal (info):', window.serverTarefa && window.serverTarefa._internal); } catch(e){}
                     const result = await window.serverTarefa.createTask(payload);
                     console.log('📥 Resposta de createTask:', result);
+                    if (result && !result.ok) {
+                        console.error('createTask retornou erro:', { status: result.status, data: result.data, error: result.error });
+                    }
 
                     if (result && result.ok) {
                         // Se servidor retornou o item criado no body, normalize e retornar

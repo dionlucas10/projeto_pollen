@@ -6,7 +6,7 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
     const senha = document.getElementById("senha").value;
 
     try {
-      const response = await fetch("https://daccf75f6eef.ngrok-free.app/usuario", {
+      const response = await fetch("https://375a1444b38a.ngrok-free.app/usuario", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

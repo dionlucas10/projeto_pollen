@@ -1,16 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tarefas</title>
+    <title>Agendar</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
         integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
         crossorigin="anonymous" referrerpolicy="no-referrer">
-    <link rel="stylesheet" href="tarefas.css">
+    <link rel="stylesheet" href="agendar.css">
 </head>
-
 <body>
     <div class="dashboard-container">
         <!-- Sidebar -->
@@ -63,62 +61,58 @@
                 </a>
             </nav>
         </aside>
+            <!-- Main content (Calendário) -->
+            <main class="main-content">
+                <header class="main-header">
+                    <h1>Agendar</h1>
+                </header>
 
-        <main class="main-content">
-            <header class="main-header">
-                <h1 class="page-title">Tarefas</h1>
-                <div class="header-actions">
-                    <button id="addTaskBtn" class="add-task-btn" aria-label="Adicionar tarefa">
-                        <i class="fas fa-plus"></i>
-                        <span class="btn-text">Adicionar</span>
-                    </button>
-                </div>
-            </header>
-
-            <section class="tasks-section">
-                <div class="tasks-carousel" aria-roledescription="carousel">
-                    <div class="carousel-viewport">
-                        <div class="carousel-track" role="list"></div>
+                <section class="calendar-area">
+                    <div class="calendar" id="calendar">
+                        <div class="calendar-header">
+                            <button id="prevMonth" class="month-btn">&lt;</button>
+                            <div class="month-year" id="monthYear"></div>
+                            <button id="nextMonth" class="month-btn">&gt;</button>
+                        </div>
+                        <div class="weekdays">
+                            <div>Dom</div>
+                            <div>Seg</div>
+                            <div>Ter</div>
+                            <div>Qua</div>
+                            <div>Qui</div>
+                            <div>Sex</div>
+                            <div>Sáb</div>
+                        </div>
+                        <div class="calendar-grid" id="calendarGrid"></div>
                     </div>
-                    <div class="carousel-controls" aria-hidden="false">
-                        <button class="carousel-btn prev-btn" aria-label="Anterior">‹</button>
-                        <button class="carousel-btn next-btn" aria-label="Próximo">›</button>
-                    </div>
-                    <div class="carousel-dots" role="tablist" aria-label="Navegação do carrossel"></div>
-                </div>
-            </section>
-        </main>
+                    <!-- Lista de agendamentos para o mês atual -->
+                    <div id="eventsList" class="events-list"></div>
+                </section>
 
-        
-    </div>
-    <!-- Modal de adicionar tarefa -->
-    <div id="taskModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-        <div class="modal-overlay"></div>
-        <div class="modal-content" role="document">
-            <h2 id="modalTitle">Adicionar Tarefa</h2>
-            <form id="taskForm">
-                <div class="form-row">
-                    <label for="taskTitle">Título</label>
-                    <input id="taskTitle" name="title" type="text" required maxlength="120" />
+                <!-- Modal para adicionar/agendar evento -->
+                <div class="modal-overlay" id="modalOverlay" aria-hidden="true">
+                    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+                        <h2 id="modalTitle">Adicionar agendamento</h2>
+                        <form id="eventForm">
+                            <input type="hidden" id="eventDate" />
+                            <label>Título</label>
+                            <input type="text" id="eventTitle" placeholder="Ex: Consulta" required />
+                            <label>Descrição</label>
+                            <textarea id="eventBody" placeholder="Detalhes..." rows="4"></textarea>
+                            <div class="modal-actions">
+                                <button type="button" id="deleteEvent" class="btn secondary">Excluir</button>
+                                <div>
+                                    <button type="button" id="cancelBtn" class="btn ghost">Cancelar</button>
+                                    <button type="submit" class="btn primary">Salvar</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-                <div class="form-row form-row-inline">
-                    <label for="taskDone" class="inline-label"><input id="taskDone" name="done" type="checkbox" /> Concluída</label>
-                </div>
-                <div class="form-row">
-                    <label for="taskDesc">Descrição</label>
-                    <textarea id="taskDesc" name="desc" rows="6" maxlength="2000" placeholder="Detalhes da tarefa..."></textarea>
-                </div>
-                <div class="form-actions">
-                    <button type="button" id="cancelTaskBtn" class="btn cancel">Cancelar</button>
-                    <button type="button" id="deleteTaskBtn" class="btn cancel" style="display:none;">Excluir</button>
-                    <button type="submit" id="submitTaskBtn" class="btn primary">Adicionar</button>
-                </div>
-            </form>
+            </main>
         </div>
-    </div>
-    <script src="slidebar.js"></script>
-    <script src="servertarefa.js"></script>
-    <script src="carroseltarefa.js"></script>
-</body>
 
+        <script src="slidebar.js"></script>
+        <script src="calendario-agendar.js"></script>
+</body>
 </html>

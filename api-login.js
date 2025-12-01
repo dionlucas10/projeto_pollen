@@ -28,7 +28,7 @@ if (form) {
     try {
       console.log('🔵 Enviando POST para /usuario/login:', { email, senha });
       
-      const resposta = await fetch('https://daccf75f6eef.ngrok-free.app/usuario/login', {
+      const resposta = await fetch('https://375a1444b38a.ngrok-free.app/usuario/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, senha })
